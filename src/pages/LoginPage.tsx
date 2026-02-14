@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import nexviaLogo from "@/assets/nexvia-logo.png";
 import loginBg from "@/assets/login-bg.jpg";
@@ -8,11 +9,15 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate("/dashboard");
+    }, 1000);
   };
 
   return (
