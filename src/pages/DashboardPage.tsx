@@ -12,6 +12,19 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Plus,
+  Zap,
+  Link2,
+  CalendarClock,
+  FileText,
+  Upload,
+  Download,
+  BarChart3,
+  Settings,
+  HelpCircle,
+  Wallet,
+  Globe,
+  Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +40,15 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 const stats = [
   {
@@ -58,7 +80,7 @@ const stats = [
   },
   {
     title: "Créditos Disponibles",
-    value: "45,200",
+    value: "$45,200",
     change: "-2,100",
     trend: "down",
     icon: CreditCard,
@@ -104,28 +126,90 @@ const statusIcon = (status: string) => {
 export default function DashboardPage() {
   const navigate = useNavigate();
 
+  const handleQuickSend = (channel: string) => {
+    toast.success(`Redirigiendo a ${channel}...`);
+    const routes: Record<string, string> = {
+      "SMS": "/sms",
+      "WhatsApp": "/whatsapp",
+      "Email": "/email",
+      "Voz": "/voice",
+    };
+    navigate(routes[channel] || "/sms");
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      {/* Header with action buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground text-sm">Resumen de tu actividad de mensajería</p>
         </div>
-        <Button
-          onClick={() => navigate("/sms")}
-          className="gap-2"
-          style={{ background: "var(--nexvia-gradient)" }}
-        >
-          <Send className="h-4 w-4" />
-          Nuevo Envío
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {/* Nuevo Envío dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }}>
+                <Plus className="h-4 w-4" />
+                Nuevo Envío
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Selecciona canal</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/sms")} className="gap-3 cursor-pointer">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="font-medium">SMS Masivo</p>
+                  <p className="text-xs text-muted-foreground">Envío rápido o campaña</p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/whatsapp")} className="gap-3 cursor-pointer">
+                <MessageCircle className="h-4 w-4 text-accent" />
+                <div>
+                  <p className="font-medium">WhatsApp</p>
+                  <p className="text-xs text-muted-foreground">Mensaje o difusión</p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/email")} className="gap-3 cursor-pointer">
+                <Mail className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="font-medium">Email Marketing</p>
+                  <p className="text-xs text-muted-foreground">Campaña de correo</p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/voice")} className="gap-3 cursor-pointer">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Llamada de Voz</p>
+                  <p className="text-xs text-muted-foreground">Text-to-Speech o audio</p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="outline" className="gap-2" onClick={() => navigate("/contacts")}>
+            <Upload className="h-4 w-4" />
+            Importar Contactos
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() => navigate("/reports")}>
+            <BarChart3 className="h-4 w-4" />
+            Ver Reportes
+          </Button>
+        </div>
       </div>
 
-      {/* Stats cards */}
+      {/* Stats cards - clickable */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="hover:shadow-md transition-shadow">
+        {stats.map((stat, i) => (
+          <Card
+            key={stat.title}
+            className="hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => {
+              const routes = ["/reports", "/reports", "/contacts", "/billing"];
+              navigate(routes[i]);
+            }}
+          >
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className={`p-2 rounded-lg ${stat.bg}`}>
@@ -143,13 +227,60 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Action toolbar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/sms")}>
+              <Zap className="h-3.5 w-3.5" />
+              Envío Rápido SMS
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => { toast.info("Función de acortador de URL próximamente"); }}>
+              <Link2 className="h-3.5 w-3.5" />
+              Acortar URL
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/sms")}>
+              <CalendarClock className="h-3.5 w-3.5" />
+              Programar Envío
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/contacts")}>
+              <Upload className="h-3.5 w-3.5" />
+              Importar CSV
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/sms")}>
+              <FileText className="h-3.5 w-3.5" />
+              Plantillas
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/reports")}>
+              <Download className="h-3.5 w-3.5" />
+              Exportar Reporte
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/billing")}>
+              <Wallet className="h-3.5 w-3.5" />
+              Recargar Saldo
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/settings")}>
+              <Settings className="h-3.5 w-3.5" />
+              Configuración
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Area chart */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-display">Mensajes Enviados</CardTitle>
-            <CardDescription>Últimos 7 días por canal</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-display">Mensajes Enviados</CardTitle>
+                <CardDescription>Últimos 7 días por canal</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate("/reports")}>
+                Ver más
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -186,7 +317,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Channel breakdown */}
+        {/* Channel breakdown - clickable */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-display">Por Canal</CardTitle>
@@ -202,24 +333,34 @@ export default function DashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="space-y-3">
-              {channelData.map((ch) => (
-                <div key={ch.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ch.icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{ch.name}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">{ch.value.toLocaleString()}</span>
-                </div>
-              ))}
+            <div className="space-y-2">
+              {channelData.map((ch) => {
+                const routes: Record<string, string> = { SMS: "/sms", WhatsApp: "/whatsapp", Email: "/email", Voz: "/voice" };
+                return (
+                  <button
+                    key={ch.name}
+                    onClick={() => navigate(routes[ch.name])}
+                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ch.icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">{ch.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">{ch.value.toLocaleString()}</span>
+                      <ArrowUpRight className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick access + recent activity */}
+      {/* Quick access + Scheduled + Recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Quick access */}
+        {/* Quick access - expanded */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-display">Acceso Rápido</CardTitle>
@@ -230,6 +371,11 @@ export default function DashboardPage() {
               { label: "Enviar WhatsApp", icon: MessageCircle, url: "/whatsapp", color: "bg-accent/10 text-accent" },
               { label: "Crear Campaña Email", icon: Mail, url: "/email", color: "bg-primary/10 text-primary" },
               { label: "Llamada Masiva", icon: Phone, url: "/voice", color: "bg-muted text-muted-foreground" },
+              { label: "Gestionar Contactos", icon: Users, url: "/contacts", color: "bg-primary/10 text-primary" },
+              { label: "Recargar Saldo", icon: Wallet, url: "/billing", color: "bg-accent/10 text-accent" },
+              { label: "Ver Reportes", icon: BarChart3, url: "/reports", color: "bg-primary/10 text-primary" },
+              { label: "Configuración", icon: Settings, url: "/settings", color: "bg-muted text-muted-foreground" },
+              { label: "Centro de Ayuda", icon: HelpCircle, url: "/help", color: "bg-accent/10 text-accent" },
             ].map((item) => (
               <button
                 key={item.label}
@@ -249,7 +395,12 @@ export default function DashboardPage() {
         {/* Recent activity */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-display">Actividad Reciente</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-display">Actividad Reciente</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => navigate("/reports")}>
+                Ver todo
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -265,9 +416,62 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs shrink-0"
+                    onClick={() => {
+                      const routeMap: Record<string, string> = { sms: "/sms", whatsapp: "/whatsapp", email: "/email", voz: "/voice" };
+                      navigate(routeMap[activity.type] || "/reports");
+                    }}
+                  >
+                    Ver detalle
+                  </Button>
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom info cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-primary/20 bg-primary/5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/billing")}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/10">
+              <Wallet className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-foreground">Recargar Saldo</p>
+              <p className="text-xs text-muted-foreground">PSE, Efecty, Nequi, Tarjetas</p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-primary ml-auto" />
+          </CardContent>
+        </Card>
+
+        <Card className="border-accent/20 bg-accent/5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/help")}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-accent/10">
+              <HelpCircle className="h-6 w-6 text-accent" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-foreground">Centro de Ayuda</p>
+              <p className="text-xs text-muted-foreground">Guías, tutoriales y soporte</p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-accent ml-auto" />
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/settings")}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-muted">
+              <Shield className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-foreground">API & Integraciones</p>
+              <p className="text-xs text-muted-foreground">Conecta tus sistemas</p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto" />
           </CardContent>
         </Card>
       </div>

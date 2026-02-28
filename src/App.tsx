@@ -13,6 +13,9 @@ import EmailPage from "./pages/EmailPage";
 import VoicePage from "./pages/VoicePage";
 import ContactsPage from "./pages/ContactsPage";
 import ReportsPage from "./pages/ReportsPage";
+import BillingPage from "./pages/BillingPage";
+import SettingsPage from "./pages/SettingsPage";
+import HelpPage from "./pages/HelpPage";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/voice" element={<VoicePage />} />
             <Route path="/contacts" element={<ContactsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/billing" element={<BillingPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/help" element={<HelpPage />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
