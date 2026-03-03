@@ -49,6 +49,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import UrlShortenerDialog from "@/components/UrlShortenerDialog";
 
 const stats = [
   {
@@ -235,10 +236,7 @@ export default function DashboardPage() {
               <Zap className="h-3.5 w-3.5" />
               Envío Rápido SMS
             </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => { toast.info("Función de acortador de URL próximamente"); }}>
-              <Link2 className="h-3.5 w-3.5" />
-              Acortar URL
-            </Button>
+            <UrlShortenerDialog />
             <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/sms")}>
               <CalendarClock className="h-3.5 w-3.5" />
               Programar Envío

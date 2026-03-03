@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   MessageCircle,
   Plus,
@@ -10,11 +10,16 @@ import {
   Send,
   Users,
   MoreHorizontal,
+  DollarSign,
+  Link2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import EmojiPicker from "@/components/EmojiPicker";
+import UrlShortenerDialog from "@/components/UrlShortenerDialog";
+import { toast } from "sonner";
 
 const conversations = [
   { id: 1, name: "Carlos Rodríguez", phone: "+57 300 123 4567", lastMsg: "Gracias por la información", time: "10:32", unread: 2 },
@@ -42,6 +47,24 @@ const tplStatus = (s: string) => {
 
 export default function WhatsappPage() {
   const [tab, setTab] = useState("conversations");
+  const [chatMessage, setChatMessage] = useState("");
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleEmojiSelect = (emoji: string) => {
+    setChatMessage((prev) => prev + emoji);
+    inputRef.current?.focus();
+  };
+
+  const handleSendMessage = () => {
+    if (!chatMessage.trim()) return;
+    if (!selectedConversation) {
+      toast.error("Selecciona una conversación");
+      return;
+    }
+    toast.success("Mensaje enviado");
+    setChatMessage("");
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -50,10 +73,13 @@ export default function WhatsappPage() {
           <h1 className="font-display text-2xl font-bold text-foreground">WhatsApp Business</h1>
           <p className="text-muted-foreground text-sm">Gestiona conversaciones y plantillas de WhatsApp</p>
         </div>
-        <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }}>
-          <Plus className="h-4 w-4" />
-          Nuevo Mensaje
-        </Button>
+        <div className="flex gap-2">
+          <UrlShortenerDialog />
+          <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }}>
+            <Plus className="h-4 w-4" />
+            Nuevo Mensaje
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -85,38 +111,99 @@ export default function WhatsappPage() {
         </TabsList>
 
         <TabsContent value="conversations" className="mt-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-display">Conversaciones Recientes</CardTitle>
-                <div className="relative">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Contact list */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-display">Conversaciones</CardTitle>
+                <div className="relative mt-2">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input className="h-9 pl-9 pr-3 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" placeholder="Buscar contacto..." />
+                  <input className="w-full h-9 pl-9 pr-3 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" placeholder="Buscar contacto..." />
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                {conversations.map((c) => (
-                  <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors">
-                    <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-semibold text-accent">{c.name[0]}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium text-foreground truncate">{c.name}</h4>
-                        <span className="text-xs text-muted-foreground">{c.time}</span>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  {conversations.map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => setSelectedConversation(c.id)}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedConversation === c.id ? "bg-primary/10" : "hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-semibold text-accent">{c.name[0]}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{c.lastMsg}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-medium text-foreground truncate">{c.name}</h4>
+                          <span className="text-xs text-muted-foreground">{c.time}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{c.lastMsg}</p>
+                      </div>
+                      {c.unread > 0 && (
+                        <span className="h-5 w-5 rounded-full bg-accent text-accent-foreground text-xs flex items-center justify-center font-medium">{c.unread}</span>
+                      )}
                     </div>
-                    {c.unread > 0 && (
-                      <span className="h-5 w-5 rounded-full bg-accent text-accent-foreground text-xs flex items-center justify-center font-medium">{c.unread}</span>
-                    )}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Chat area */}
+            <Card className="lg:col-span-2">
+              <CardContent className="p-4 flex flex-col h-[400px]">
+                {selectedConversation ? (
+                  <>
+                    <div className="flex items-center gap-3 pb-3 border-b border-border mb-3">
+                      <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center">
+                        <span className="text-xs font-semibold text-accent">
+                          {conversations.find((c) => c.id === selectedConversation)?.name[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {conversations.find((c) => c.id === selectedConversation)?.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {conversations.find((c) => c.id === selectedConversation)?.phone}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+                      Los mensajes aparecerán aquí
+                    </div>
+                    <div className="flex items-center gap-2 pt-3 border-t border-border">
+                      <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                      <UrlShortenerDialog
+                        trigger={
+                          <Button variant="outline" size="icon" title="Acortar URL">
+                            <Link2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                      <input
+                        ref={inputRef}
+                        value={chatMessage}
+                        onChange={(e) => setChatMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                        className="flex-1 h-10 px-3 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
+                        placeholder="Escribe un mensaje..."
+                      />
+                      <Button size="icon" style={{ background: "var(--nexvia-gradient)" }} onClick={handleSendMessage}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+                    <MessageCircle className="h-12 w-12 mb-3 opacity-30" />
+                    <p className="text-sm">Selecciona una conversación</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="templates" className="mt-4">
