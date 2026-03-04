@@ -4,13 +4,13 @@ import {
   MessageCircle,
   Mail,
   Phone,
-  Users,
   BarChart3,
   Settings,
   CreditCard,
   HelpCircle,
   LogOut,
   ChevronDown,
+  Link2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import nexviaLogo from "@/assets/nexvia-logo.png";
@@ -38,14 +38,14 @@ const mainItems = [
 ];
 
 const serviceItems = [
-  { title: "SMS Masivos", url: "/sms", icon: MessageSquare },
+  { title: "SMS", url: "/sms", icon: MessageSquare },
   { title: "WhatsApp Business", url: "/whatsapp", icon: MessageCircle },
   { title: "Email Marketing", url: "/email", icon: Mail },
   { title: "Llamadas de Voz", url: "/voice", icon: Phone },
+  { title: "Acortador URLs", url: "/url-shortener", icon: Link2 },
 ];
 
 const managementItems = [
-  { title: "Contactos", url: "/contacts", icon: Users },
   { title: "Reportes", url: "/reports", icon: BarChart3 },
   { title: "Facturación", url: "/billing", icon: CreditCard },
 ];
