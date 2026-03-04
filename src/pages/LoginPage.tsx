@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, User, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import nexviaLogo from "@/assets/nexvia-logo.png";
 import loginBg from "@/assets/login-bg.jpg";
 
@@ -17,10 +18,13 @@ const LoginPage = () => {
   const [otpCode, setOtpCode] = useState(["", "", "", "", "", ""]);
   const [otpMethod, setOtpMethod] = useState<"email" | "phone">("email");
   const [resendTimer, setResendTimer] = useState(0);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedTermsLogin, setAcceptedTermsLogin] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTermsLogin) return;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -30,6 +34,7 @@ const LoginPage = () => {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTerms) return;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -42,10 +47,7 @@ const LoginPage = () => {
     setResendTimer(60);
     const interval = setInterval(() => {
       setResendTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
+        if (prev <= 1) { clearInterval(interval); return 0; }
         return prev - 1;
       });
     }, 1000);
@@ -57,27 +59,21 @@ const LoginPage = () => {
     newOtp[index] = value;
     setOtpCode(newOtp);
     if (value && index < 5) {
-      const next = document.getElementById(`otp-${index + 1}`);
-      next?.focus();
+      document.getElementById(`otp-${index + 1}`)?.focus();
     }
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !otpCode[index] && index > 0) {
-      const prev = document.getElementById(`otp-${index - 1}`);
-      prev?.focus();
+      document.getElementById(`otp-${index - 1}`)?.focus();
     }
   };
 
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    const code = otpCode.join("");
-    if (code.length < 6) return;
+    if (otpCode.join("").length < 6) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/dashboard");
-    }, 1000);
+    setTimeout(() => { setIsLoading(false); navigate("/dashboard"); }, 1000);
   };
 
   const handleResendOtp = () => {
@@ -130,95 +126,46 @@ const LoginPage = () => {
           {/* ── OTP VIEW ── */}
           {view === "otp" && (
             <>
-              <button
-                onClick={() => setView("register")}
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-              >
+              <button onClick={() => setView("register")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
                 <ArrowLeft className="h-4 w-4" /> Volver al registro
               </button>
-
               <div className="text-center mb-8">
-                <div className="mx-auto mb-4 h-16 w-16 rounded-2xl flex items-center justify-center"
-                  style={{ background: "var(--nexvia-gradient)" }}>
+                <div className="mx-auto mb-4 h-16 w-16 rounded-2xl flex items-center justify-center" style={{ background: "var(--nexvia-gradient)" }}>
                   <ShieldCheck className="h-8 w-8 text-primary-foreground" />
                 </div>
                 <h2 className="font-display text-2xl font-bold text-foreground mb-2">Verifica tu cuenta</h2>
                 <p className="text-muted-foreground text-sm">
-                  Enviamos un código de 6 dígitos a{" "}
-                  <span className="font-semibold text-foreground">{maskedContact}</span>
+                  Enviamos un código de 6 dígitos a <span className="font-semibold text-foreground">{maskedContact}</span>
                 </p>
               </div>
-
-              {/* OTP method toggle */}
               <div className="flex gap-2 mb-6 p-1 rounded-lg bg-muted">
-                <button
-                  type="button"
-                  onClick={() => setOtpMethod("email")}
-                  className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                    otpMethod === "email"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Mail className="h-3.5 w-3.5 inline mr-1.5" />
-                  Correo
+                <button type="button" onClick={() => setOtpMethod("email")} className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${otpMethod === "email" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                  <Mail className="h-3.5 w-3.5 inline mr-1.5" />Correo
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setOtpMethod("phone")}
-                  className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                    otpMethod === "phone"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Phone className="h-3.5 w-3.5 inline mr-1.5" />
-                  Teléfono
+                <button type="button" onClick={() => setOtpMethod("phone")} className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${otpMethod === "phone" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                  <Phone className="h-3.5 w-3.5 inline mr-1.5" />Teléfono
                 </button>
               </div>
-
               <form onSubmit={handleVerifyOtp} className="space-y-6">
                 <div className="flex justify-center gap-2.5">
                   {otpCode.map((digit, i) => (
-                    <input
-                      key={i}
-                      id={`otp-${i}`}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
+                    <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/, ""))}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       className="w-12 h-14 text-center text-xl font-bold rounded-lg border border-input bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all"
                     />
                   ))}
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading || otpCode.join("").length < 6}
+                <button type="submit" disabled={isLoading || otpCode.join("").length < 6}
                   className="w-full h-12 rounded-lg font-semibold text-primary-foreground transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
-                  style={{ background: "var(--nexvia-gradient)", boxShadow: "var(--nexvia-shadow)" }}
-                >
-                  {isLoading ? (
-                    <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      Verificar cuenta
-                      <ShieldCheck className="h-4 w-4" />
-                    </>
-                  )}
+                  style={{ background: "var(--nexvia-gradient)", boxShadow: "var(--nexvia-shadow)" }}>
+                  {isLoading ? <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : (<>Verificar cuenta <ShieldCheck className="h-4 w-4" /></>)}
                 </button>
               </form>
-
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
                   ¿No recibiste el código?{" "}
-                  <button
-                    onClick={handleResendOtp}
-                    disabled={resendTimer > 0}
-                    className="font-semibold text-primary hover:text-primary/80 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed"
-                  >
+                  <button onClick={handleResendOtp} disabled={resendTimer > 0} className="font-semibold text-primary hover:text-primary/80 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     {resendTimer > 0 ? `Reenviar en ${resendTimer}s` : "Reenviar código"}
                   </button>
                 </p>
@@ -229,26 +176,11 @@ const LoginPage = () => {
           {/* ── LOGIN / REGISTER VIEWS ── */}
           {view !== "otp" && (
             <>
-              {/* Tabs */}
               <div className="flex mb-8 p-1 rounded-lg bg-muted">
-                <button
-                  onClick={() => setView("login")}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
-                    view === "login"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
+                <button onClick={() => setView("login")} className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${view === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
                   Iniciar sesión
                 </button>
-                <button
-                  onClick={() => setView("register")}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
-                    view === "register"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
+                <button onClick={() => setView("register")} className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${view === "register" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
                   Crear cuenta
                 </button>
               </div>
@@ -281,7 +213,21 @@ const LoginPage = () => {
                         </button>
                       </div>
                     </div>
-                    <button type="submit" disabled={isLoading} className="w-full h-12 rounded-lg font-semibold text-primary-foreground transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: "var(--nexvia-gradient)", boxShadow: "var(--nexvia-shadow)" }}>
+
+                    {/* Terms checkbox */}
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="terms-login"
+                        checked={acceptedTermsLogin}
+                        onCheckedChange={(checked) => setAcceptedTermsLogin(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <label htmlFor="terms-login" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                        Acepto los <span className="text-primary font-medium underline">términos y condiciones</span> y la <span className="text-primary font-medium underline">política de privacidad</span> de NEXVIA.
+                      </label>
+                    </div>
+
+                    <button type="submit" disabled={isLoading || !acceptedTermsLogin} className="w-full h-12 rounded-lg font-semibold text-primary-foreground transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: "var(--nexvia-gradient)", boxShadow: "var(--nexvia-shadow)" }}>
                       {isLoading ? <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : (<>Iniciar sesión <ArrowRight className="h-4 w-4" /></>)}
                     </button>
                   </form>
@@ -327,7 +273,21 @@ const LoginPage = () => {
                         </button>
                       </div>
                     </div>
-                    <button type="submit" disabled={isLoading} className="w-full h-12 rounded-lg font-semibold text-primary-foreground transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 mt-2" style={{ background: "var(--nexvia-gradient)", boxShadow: "var(--nexvia-shadow)" }}>
+
+                    {/* Terms checkbox */}
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="terms-register"
+                        checked={acceptedTerms}
+                        onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <label htmlFor="terms-register" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                        Acepto los <span className="text-primary font-medium underline">términos y condiciones</span> y la <span className="text-primary font-medium underline">política de privacidad</span> de NEXVIA. Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012.
+                      </label>
+                    </div>
+
+                    <button type="submit" disabled={isLoading || !acceptedTerms} className="w-full h-12 rounded-lg font-semibold text-primary-foreground transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 mt-2" style={{ background: "var(--nexvia-gradient)", boxShadow: "var(--nexvia-shadow)" }}>
                       {isLoading ? <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : (<>Crear cuenta <ArrowRight className="h-4 w-4" /></>)}
                     </button>
                   </form>

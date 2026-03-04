@@ -1,4 +1,4 @@
-// Client-side URL shortener with NEXV branding
+// Client-side URL shortener with NEX branding
 // Generates deterministic short codes based on URL hash
 
 function hashCode(str: string): number {
@@ -29,9 +29,10 @@ export interface ShortenedUrl {
   short: string;
   code: string;
   createdAt: string;
+  clicks: number;
 }
 
-const STORAGE_KEY = "nexv_shortened_urls";
+const STORAGE_KEY = "nex_shortened_urls";
 
 export function getStoredUrls(): ShortenedUrl[] {
   try {
@@ -49,11 +50,26 @@ export function shortenUrl(originalUrl: string): ShortenedUrl {
   const code = generateCode(originalUrl);
   const entry: ShortenedUrl = {
     original: originalUrl,
-    short: `nexv.co/${code}`,
+    short: `nex.co/${code}`,
     code,
     createdAt: new Date().toISOString(),
+    clicks: 0,
   };
   stored.unshift(entry);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(stored.slice(0, 100)));
   return entry;
+}
+
+export function simulateClick(code: string): void {
+  const stored = getStoredUrls();
+  const entry = stored.find((u) => u.code === code);
+  if (entry) {
+    entry.clicks += 1;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+  }
+}
+
+export function deleteUrl(code: string): void {
+  const stored = getStoredUrls().filter((u) => u.code !== code);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
 }

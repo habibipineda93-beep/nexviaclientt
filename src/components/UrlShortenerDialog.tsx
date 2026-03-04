@@ -57,7 +57,7 @@ export default function UrlShortenerDialog({ trigger }: { trigger?: React.ReactN
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <Link2 className="h-5 w-5 text-primary" />
-            Acortador de URL — NEXV
+            Acortador de URL — NEX
           </DialogTitle>
         </DialogHeader>
 
