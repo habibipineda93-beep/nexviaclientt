@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   User,
   Users,
+  Layers,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import EmojiPicker from "@/components/EmojiPicker";
-import UrlShortenerDialog from "@/components/UrlShortenerDialog";
 import { hasEmojis, getMaxChars, getSmsParts, calculateCost, COST_PER_SMS } from "@/lib/sms-utils";
 import { toast } from "sonner";
 
@@ -53,9 +53,17 @@ export default function SmsPage() {
   const [bulkMessage, setBulkMessage] = useState("");
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [acceptedTermsBulk, setAcceptedTermsBulk] = useState(false);
+  // Concatenados state
+  const [concatTemplate, setConcatTemplate] = useState("");
+  const [concatFile, setConcatFile] = useState<File | null>(null);
+  const [concatColumns, setConcatColumns] = useState(3);
+  const [acceptedTermsConcat, setAcceptedTermsConcat] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bulkTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const concatTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const concatFileInputRef = useRef<HTMLInputElement>(null);
 
   // One-to-one calculations
   const containsEmoji = hasEmojis(message);
@@ -69,6 +77,26 @@ export default function SmsPage() {
   const bulkMaxChars = getMaxChars(bulkMessage);
   const bulkCharCount = bulkMessage.length;
   const bulkParts = getSmsParts(bulkMessage);
+
+  // Concat calculations
+  const concatContainsEmoji = hasEmojis(concatTemplate);
+  const concatMaxChars = getMaxChars(concatTemplate);
+  const concatCharCount = concatTemplate.length;
+  const concatParts = getSmsParts(concatTemplate);
+
+  // Example preview for concatenados
+  const exampleData = [
+    ["María García", "$125,000", "15/01/2025", "Factura #001", "Sede Norte"],
+    ["Juan Pérez", "$89,500", "20/01/2025", "Factura #002", "Sede Sur"],
+  ];
+
+  const getPreviewMessage = (template: string, rowIndex: number) => {
+    let result = template;
+    for (let i = 1; i <= 5; i++) {
+      result = result.replace(new RegExp(`\\{${i}\\}`, "g"), exampleData[rowIndex]?.[i - 1] || `[Col ${i}]`);
+    }
+    return result;
+  };
 
   const handleEmojiSelect = (emoji: string, ref: React.RefObject<HTMLTextAreaElement>, setter: React.Dispatch<React.SetStateAction<string>>, currentMsg: string) => {
     const ta = ref.current;
@@ -100,7 +128,14 @@ export default function SmsPage() {
     toast.success(`Enviando SMS masivo con archivo "${bulkFile.name}" — ${bulkParts} parte(s) por mensaje`);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSendConcat = () => {
+    if (!concatTemplate.trim()) { toast.error("Escribe la plantilla del mensaje"); return; }
+    if (!concatFile) { toast.error("Sube el archivo Excel con los datos"); return; }
+    if (!acceptedTermsConcat) { toast.error("Debes aceptar los términos y condiciones"); return; }
+    toast.success(`Enviando SMS concatenados con archivo "${concatFile.name}" — ${concatParts} parte(s) por mensaje`);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "bulk" | "concat") => {
     const file = e.target.files?.[0];
     if (file) {
       const validTypes = [".csv", ".xlsx", ".xls", ".txt"];
@@ -109,8 +144,25 @@ export default function SmsPage() {
         toast.error("Formato no válido. Usa CSV, Excel o TXT");
         return;
       }
-      setBulkFile(file);
+      if (type === "bulk") setBulkFile(file);
+      else setConcatFile(file);
       toast.success(`Archivo "${file.name}" cargado correctamente`);
+    }
+  };
+
+  const insertPlaceholder = (num: number) => {
+    const ta = concatTextareaRef.current;
+    const placeholder = `{${num}}`;
+    if (ta) {
+      const start = ta.selectionStart;
+      const newMsg = concatTemplate.slice(0, start) + placeholder + concatTemplate.slice(start);
+      setConcatTemplate(newMsg);
+      setTimeout(() => {
+        ta.focus();
+        ta.setSelectionRange(start + placeholder.length, start + placeholder.length);
+      }, 0);
+    } else {
+      setConcatTemplate((prev) => prev + placeholder);
     }
   };
 
@@ -118,13 +170,12 @@ export default function SmsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">SMS</h1>
-          <p className="text-muted-foreground text-sm">Envía mensajes individuales o masivos</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Mensajes de Texto</h1>
+          <p className="text-muted-foreground text-sm">Envía mensajes individuales, masivos o concatenados</p>
         </div>
         <div className="flex gap-2">
           <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }}>
-            <Plus className="h-4 w-4" />
-            Nueva Campaña
+            <Plus className="h-4 w-4" /> Nueva Campaña
           </Button>
         </div>
       </div>
@@ -159,6 +210,9 @@ export default function SmsPage() {
           <TabsTrigger value="bulk" className="gap-2">
             <FileSpreadsheet className="h-3.5 w-3.5" /> Masivos
           </TabsTrigger>
+          <TabsTrigger value="concatenated" className="gap-2">
+            <Layers className="h-3.5 w-3.5" /> Concatenados
+          </TabsTrigger>
           <TabsTrigger value="campaigns">Campañas</TabsTrigger>
           <TabsTrigger value="templates">Plantillas</TabsTrigger>
         </TabsList>
@@ -168,8 +222,7 @@ export default function SmsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-display flex items-center gap-2">
-                <User className="h-4 w-4 text-primary" />
-                Envío Individual
+                <User className="h-4 w-4 text-primary" /> Envío Individual
               </CardTitle>
               <CardDescription>Envía un mensaje de texto a un solo número</CardDescription>
             </CardHeader>
@@ -186,9 +239,7 @@ export default function SmsPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-foreground">Mensaje</label>
-                  <div className="flex items-center gap-1">
-                    <EmojiPicker onEmojiSelect={(emoji) => handleEmojiSelect(emoji, textareaRef, setMessage, message)} />
-                  </div>
+                  <EmojiPicker onEmojiSelect={(emoji) => handleEmojiSelect(emoji, textareaRef, setMessage, message)} />
                 </div>
                 <textarea
                   ref={textareaRef}
@@ -202,41 +253,22 @@ export default function SmsPage() {
                     <span className={charCount > maxChars ? "text-destructive font-medium" : "text-muted-foreground"}>
                       {charCount} / {maxChars} caracteres
                     </span>
-                    {containsEmoji && (
-                      <Badge variant="secondary" className="text-xs h-5">
-                        Emoji detectado — máx. 70 chars (Premium)
-                      </Badge>
-                    )}
-                    {!containsEmoji && charCount > 0 && (
-                      <Badge variant="outline" className="text-xs h-5">
-                        Estándar — 160 chars
-                      </Badge>
-                    )}
-                    {parts > 1 && (
-                      <span className="text-muted-foreground">{parts} partes SMS</span>
-                    )}
+                    {containsEmoji && <Badge variant="secondary" className="text-xs h-5">Emoji — máx. 70 chars (Premium)</Badge>}
+                    {!containsEmoji && charCount > 0 && <Badge variant="outline" className="text-xs h-5">Estándar — 160 chars</Badge>}
+                    {parts > 1 && <span className="text-muted-foreground">{parts} partes SMS</span>}
                   </div>
                   <div className="flex items-center gap-1 text-foreground font-medium">
-                    <DollarSign className="h-3 w-3" />
-                    Costo: ${totalCost.toLocaleString()} COP
+                    <DollarSign className="h-3 w-3" /> Costo: ${totalCost.toLocaleString()} COP
                     <span className="text-muted-foreground font-normal ml-1">(${COST_PER_SMS}/msg)</span>
                   </div>
                 </div>
               </div>
-
-              {/* Terms acceptance */}
               <div className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30">
-                <Checkbox
-                  id="terms-one"
-                  checked={acceptedTerms}
-                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                  className="mt-0.5"
-                />
+                <Checkbox id="terms-one" checked={acceptedTerms} onCheckedChange={(checked) => setAcceptedTerms(checked === true)} className="mt-0.5" />
                 <label htmlFor="terms-one" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
                   Acepto los <span className="text-primary font-medium underline">términos y condiciones</span> de NEXVIA para el envío de mensajes. Declaro que cuento con la autorización de los destinatarios según la normativa colombiana de protección de datos (Ley 1581 de 2012).
                 </label>
               </div>
-
               <div className="flex justify-end gap-2">
                 <Button variant="outline" className="gap-2"><Clock className="h-4 w-4" /> Programar</Button>
                 <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }} onClick={handleSendOne} disabled={!acceptedTerms}>
@@ -252,26 +284,15 @@ export default function SmsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-display flex items-center gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-primary" />
-                Envío Masivo por Archivo
+                <FileSpreadsheet className="h-4 w-4 text-primary" /> Envío Masivo por Archivo
               </CardTitle>
               <CardDescription>Sube un archivo CSV, Excel o TXT con los números de los destinatarios</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* File upload */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Archivo de destinatarios</label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-muted/20 transition-all"
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv,.xlsx,.xls,.txt"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+                <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-muted/20 transition-all">
+                  <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls,.txt" onChange={(e) => handleFileUpload(e, "bulk")} className="hidden" />
                   {bulkFile ? (
                     <div className="flex items-center justify-center gap-3">
                       <FileSpreadsheet className="h-8 w-8 text-primary" />
@@ -289,60 +310,152 @@ export default function SmsPage() {
                   )}
                 </div>
               </div>
-
-              {/* Message */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-foreground">Mensaje</label>
-                  <div className="flex items-center gap-1">
-                    <EmojiPicker onEmojiSelect={(emoji) => handleEmojiSelect(emoji, bulkTextareaRef, setBulkMessage, bulkMessage)} />
-                  </div>
+                  <EmojiPicker onEmojiSelect={(emoji) => handleEmojiSelect(emoji, bulkTextareaRef, setBulkMessage, bulkMessage)} />
                 </div>
-                <textarea
-                  ref={bulkTextareaRef}
-                  value={bulkMessage}
-                  onChange={(e) => setBulkMessage(e.target.value)}
-                  className="w-full h-32 px-3 py-2 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 resize-none"
-                  placeholder="Escribe tu mensaje aquí..."
-                />
+                <textarea ref={bulkTextareaRef} value={bulkMessage} onChange={(e) => setBulkMessage(e.target.value)} className="w-full h-32 px-3 py-2 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 resize-none" placeholder="Escribe tu mensaje aquí..." />
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-3">
-                    <span className={bulkCharCount > bulkMaxChars ? "text-destructive font-medium" : "text-muted-foreground"}>
-                      {bulkCharCount} / {bulkMaxChars} caracteres
-                    </span>
-                    {bulkContainsEmoji && (
-                      <Badge variant="secondary" className="text-xs h-5">Emoji detectado — máx. 70 chars (Premium)</Badge>
-                    )}
-                    {!bulkContainsEmoji && bulkCharCount > 0 && (
-                      <Badge variant="outline" className="text-xs h-5">Estándar — 160 chars</Badge>
-                    )}
-                    {bulkParts > 1 && (
-                      <span className="text-muted-foreground">{bulkParts} partes SMS</span>
-                    )}
+                    <span className={bulkCharCount > bulkMaxChars ? "text-destructive font-medium" : "text-muted-foreground"}>{bulkCharCount} / {bulkMaxChars} caracteres</span>
+                    {bulkContainsEmoji && <Badge variant="secondary" className="text-xs h-5">Emoji — máx. 70 chars (Premium)</Badge>}
+                    {!bulkContainsEmoji && bulkCharCount > 0 && <Badge variant="outline" className="text-xs h-5">Estándar — 160 chars</Badge>}
+                    {bulkParts > 1 && <span className="text-muted-foreground">{bulkParts} partes SMS</span>}
                   </div>
-                  <span className="text-muted-foreground">
-                    Costo: ${COST_PER_SMS} COP × destinatario × {bulkParts} parte(s)
-                  </span>
+                  <span className="text-muted-foreground">Costo: ${COST_PER_SMS} COP × destinatario × {bulkParts} parte(s)</span>
                 </div>
               </div>
-
-              {/* Terms acceptance */}
               <div className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30">
-                <Checkbox
-                  id="terms-bulk"
-                  checked={acceptedTermsBulk}
-                  onCheckedChange={(checked) => setAcceptedTermsBulk(checked === true)}
-                  className="mt-0.5"
-                />
+                <Checkbox id="terms-bulk" checked={acceptedTermsBulk} onCheckedChange={(checked) => setAcceptedTermsBulk(checked === true)} className="mt-0.5" />
                 <label htmlFor="terms-bulk" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
-                  Acepto los <span className="text-primary font-medium underline">términos y condiciones</span> de NEXVIA para el envío masivo de mensajes. Declaro que la base de datos cargada cumple con la normativa colombiana de protección de datos (Ley 1581 de 2012) y que todos los destinatarios han autorizado el envío.
+                  Acepto los <span className="text-primary font-medium underline">términos y condiciones</span> de NEXVIA para el envío masivo de mensajes. Declaro que la base de datos cargada cumple con la normativa colombiana de protección de datos (Ley 1581 de 2012).
                 </label>
               </div>
-
               <div className="flex justify-end gap-2">
                 <Button variant="outline" className="gap-2"><Clock className="h-4 w-4" /> Programar</Button>
                 <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }} onClick={handleSendBulk} disabled={!acceptedTermsBulk}>
                   <Send className="h-4 w-4" /> Enviar Masivo
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── CONCATENADOS ── */}
+        <TabsContent value="concatenated" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" /> Mensajes Concatenados
+              </CardTitle>
+              <CardDescription>
+                Escribe un mensaje con espacios personalizables usando {"{1}"}, {"{2}"}, {"{3}"}, {"{4}"}, {"{5}"}. 
+                Sube un archivo Excel donde la columna A es el teléfono y las columnas B-F son los datos para cada espacio.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Column count selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Número de columnas de datos (B a F)</label>
+                <div className="flex gap-2">
+                  {[3, 4, 5].map((n) => (
+                    <Button key={n} variant={concatColumns === n ? "default" : "outline"} size="sm" onClick={() => setConcatColumns(n)}>
+                      {n} columnas
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Columna A = Teléfono, Columnas B{concatColumns >= 4 ? "-" + String.fromCharCode(65 + concatColumns) : `-${String.fromCharCode(65 + concatColumns)}`} = Datos personalizados
+                </p>
+              </div>
+
+              {/* Template message */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-foreground">Plantilla del mensaje</label>
+                  <div className="flex items-center gap-1">
+                    <EmojiPicker onEmojiSelect={(emoji) => handleEmojiSelect(emoji, concatTextareaRef, setConcatTemplate, concatTemplate)} />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {Array.from({ length: concatColumns }, (_, i) => i + 1).map((n) => (
+                    <Button key={n} variant="outline" size="sm" className="text-xs h-7 gap-1" onClick={() => insertPlaceholder(n)}>
+                      Insertar {`{${n}}`}
+                    </Button>
+                  ))}
+                </div>
+                <textarea
+                  ref={concatTextareaRef}
+                  value={concatTemplate}
+                  onChange={(e) => setConcatTemplate(e.target.value)}
+                  className="w-full h-32 px-3 py-2 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 resize-none"
+                  placeholder={`Ej: Hola {1}, tu factura por valor de {2} vence el {3}`}
+                />
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className={concatCharCount > concatMaxChars ? "text-destructive font-medium" : "text-muted-foreground"}>
+                      {concatCharCount} / {concatMaxChars} caracteres (plantilla)
+                    </span>
+                    {concatContainsEmoji && <Badge variant="secondary" className="text-xs h-5">Emoji — máx. 70 chars (Premium)</Badge>}
+                    {!concatContainsEmoji && concatCharCount > 0 && <Badge variant="outline" className="text-xs h-5">Estándar — 160 chars</Badge>}
+                    {concatParts > 1 && <span className="text-muted-foreground">{concatParts} partes SMS</span>}
+                  </div>
+                  <span className="text-muted-foreground">Costo: ${COST_PER_SMS} COP × destinatario × {concatParts} parte(s)</span>
+                </div>
+              </div>
+
+              {/* Preview */}
+              {concatTemplate && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Vista previa (datos de ejemplo)</label>
+                  <div className="space-y-2">
+                    {exampleData.slice(0, 2).map((_, i) => (
+                      <div key={i} className="p-3 rounded-lg border border-border bg-muted/20">
+                        <p className="text-xs text-muted-foreground mb-1">Destinatario {i + 1}:</p>
+                        <p className="text-sm text-foreground">{getPreviewMessage(concatTemplate, i)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* File upload */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Archivo Excel con datos</label>
+                <div onClick={() => concatFileInputRef.current?.click()} className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-muted/20 transition-all">
+                  <input ref={concatFileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={(e) => handleFileUpload(e, "concat")} className="hidden" />
+                  {concatFile ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <FileSpreadsheet className="h-8 w-8 text-primary" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-foreground">{concatFile.name}</p>
+                        <p className="text-xs text-muted-foreground">{(concatFile.size / 1024).toFixed(1)} KB — Haz clic para cambiar</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-foreground font-medium">Sube tu archivo Excel</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Col A: Teléfono | Col B-{String.fromCharCode(65 + concatColumns)}: Datos para {`{1}`} a {`{${concatColumns}}`}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Terms */}
+              <div className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30">
+                <Checkbox id="terms-concat" checked={acceptedTermsConcat} onCheckedChange={(checked) => setAcceptedTermsConcat(checked === true)} className="mt-0.5" />
+                <label htmlFor="terms-concat" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                  Acepto los <span className="text-primary font-medium underline">términos y condiciones</span> de NEXVIA para el envío de mensajes concatenados. Declaro que la base de datos cumple con la Ley 1581 de 2012.
+                </label>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" className="gap-2"><Clock className="h-4 w-4" /> Programar</Button>
+                <Button className="gap-2" style={{ background: "var(--nexvia-gradient)" }} onClick={handleSendConcat} disabled={!acceptedTermsConcat}>
+                  <Send className="h-4 w-4" /> Enviar Concatenados
                 </Button>
               </div>
             </CardContent>
