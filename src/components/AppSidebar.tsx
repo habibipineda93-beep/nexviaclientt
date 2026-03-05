@@ -38,10 +38,7 @@ const mainItems = [
 ];
 
 const serviceItems = [
-  { title: "SMS", url: "/sms", icon: MessageSquare },
-  { title: "WhatsApp Business", url: "/whatsapp", icon: MessageCircle },
-  { title: "Email Marketing", url: "/email", icon: Mail },
-  { title: "Llamadas de Voz", url: "/voice", icon: Phone },
+  { title: "Mensajes de Texto", url: "/sms", icon: MessageSquare },
   { title: "Acortador URLs", url: "/url-shortener", icon: Link2 },
 ];
 

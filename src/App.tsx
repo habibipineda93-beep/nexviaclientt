@@ -8,9 +8,6 @@ import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
 import SmsPage from "./pages/SmsPage";
-import WhatsappPage from "./pages/WhatsappPage";
-import EmailPage from "./pages/EmailPage";
-import VoicePage from "./pages/VoicePage";
 import ReportsPage from "./pages/ReportsPage";
 import BillingPage from "./pages/BillingPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -30,9 +27,6 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/sms" element={<SmsPage />} />
-            <Route path="/whatsapp" element={<WhatsappPage />} />
-            <Route path="/email" element={<EmailPage />} />
-            <Route path="/voice" element={<VoicePage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/billing" element={<BillingPage />} />
             <Route path="/settings" element={<SettingsPage />} />
