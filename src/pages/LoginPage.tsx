@@ -201,9 +201,7 @@ const LoginPage = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <label className="text-sm font-medium text-foreground" htmlFor="login-password">Contraseña</label>
-                        <button type="button" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">¿Olvidaste tu contraseña?</button>
+                      <label className="text-sm font-medium text-foreground" htmlFor="login-password">Contraseña</label>
                       </div>
                       <div className="relative">
                         <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
