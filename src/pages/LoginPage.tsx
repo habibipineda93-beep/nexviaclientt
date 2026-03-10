@@ -202,7 +202,6 @@ const LoginPage = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground" htmlFor="login-password">Contraseña</label>
-                      </div>
                       <div className="relative">
                         <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input id="login-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-12 pl-11 pr-12 rounded-lg border border-input bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all" required />
