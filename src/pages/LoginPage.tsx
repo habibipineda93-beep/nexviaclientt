@@ -201,10 +201,7 @@ const LoginPage = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <label className="text-sm font-medium text-foreground" htmlFor="login-password">Contraseña</label>
-                        <button type="button" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">¿Olvidaste tu contraseña?</button>
-                      </div>
+                      <label className="text-sm font-medium text-foreground" htmlFor="login-password">Contraseña</label>
                       <div className="relative">
                         <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input id="login-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-12 pl-11 pr-12 rounded-lg border border-input bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all" required />
@@ -212,6 +209,15 @@ const LoginPage = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
+                    </div>
+
+                    {/* Keep me signed in + Reset password */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox id="keep-signed-in" className="h-4 w-4" />
+                        <label htmlFor="keep-signed-in" className="text-sm text-muted-foreground cursor-pointer">Mantener sesión</label>
+                      </div>
+                      <button type="button" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">Restablecer contraseña</button>
                     </div>
 
                     {/* Terms checkbox */}
@@ -231,6 +237,22 @@ const LoginPage = () => {
                       {isLoading ? <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : (<>Iniciar sesión <ArrowRight className="h-4 w-4" /></>)}
                     </button>
                   </form>
+
+                  {/* Or continue with */}
+                  <div className="flex items-center gap-3 my-6">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-muted-foreground">O continuar con</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <button type="button" className="w-full h-12 rounded-lg border border-input bg-card text-foreground font-medium flex items-center justify-center gap-3 hover:bg-accent transition-colors">
+                    <img src="https://www.google.com/favicon.ico" alt="Google" className="h-5 w-5" />
+                    Continuar con Google
+                  </button>
+
+                  <p className="mt-6 text-center text-sm text-muted-foreground">
+                    ¿Nuevo en la plataforma?{" "}
+                    <button onClick={() => setView("register")} className="font-semibold text-primary hover:text-primary/80 transition-colors">Crear cuenta</button>
+                  </p>
                 </>
               )}
 
@@ -291,6 +313,22 @@ const LoginPage = () => {
                       {isLoading ? <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : (<>Crear cuenta <ArrowRight className="h-4 w-4" /></>)}
                     </button>
                   </form>
+
+                  {/* Or continue with */}
+                  <div className="flex items-center gap-3 my-6">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-muted-foreground">O continuar con</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <button type="button" className="w-full h-12 rounded-lg border border-input bg-card text-foreground font-medium flex items-center justify-center gap-3 hover:bg-accent transition-colors">
+                    <img src="https://www.google.com/favicon.ico" alt="Google" className="h-5 w-5" />
+                    Continuar con Google
+                  </button>
+
+                  <p className="mt-6 text-center text-sm text-muted-foreground">
+                    ¿Ya tienes cuenta?{" "}
+                    <button onClick={() => setView("login")} className="font-semibold text-primary hover:text-primary/80 transition-colors">Iniciar sesión</button>
+                  </p>
                 </>
               )}
 
