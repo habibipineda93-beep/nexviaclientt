@@ -214,6 +214,15 @@ const LoginPage = () => {
                       </div>
                     </div>
 
+                    {/* Keep me signed in + Reset password */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox id="keep-signed-in" className="h-4 w-4" />
+                        <label htmlFor="keep-signed-in" className="text-sm text-muted-foreground cursor-pointer">Mantener sesión</label>
+                      </div>
+                      <button type="button" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">Restablecer contraseña</button>
+                    </div>
+
                     {/* Terms checkbox */}
                     <div className="flex items-start gap-2">
                       <Checkbox
@@ -231,6 +240,22 @@ const LoginPage = () => {
                       {isLoading ? <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : (<>Iniciar sesión <ArrowRight className="h-4 w-4" /></>)}
                     </button>
                   </form>
+
+                  {/* Or continue with */}
+                  <div className="flex items-center gap-3 my-6">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-muted-foreground">O continuar con</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <button type="button" className="w-full h-12 rounded-lg border border-input bg-card text-foreground font-medium flex items-center justify-center gap-3 hover:bg-accent transition-colors">
+                    <img src="https://www.google.com/favicon.ico" alt="Google" className="h-5 w-5" />
+                    Continuar con Google
+                  </button>
+
+                  <p className="mt-6 text-center text-sm text-muted-foreground">
+                    ¿Nuevo en la plataforma?{" "}
+                    <button onClick={() => setView("register")} className="font-semibold text-primary hover:text-primary/80 transition-colors">Crear cuenta</button>
+                  </p>
                 </>
               )}
 
